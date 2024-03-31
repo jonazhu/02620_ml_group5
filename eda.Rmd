@@ -1,0 +1,84 @@
+---
+title: "eda"
+author: "Jonathan Zhu"
+date: "2024-02-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(tidymodels)
+```
+
+For all of these datasets I will look at n/a values and PCA.
+```{r}
+#replace the current string with path to your dataset of interest
+exp_tumors <- read_csv("glioma+grading+clinical+and+mutation+features+dataset/TCGA_GBM_LGG_Mutations_all.csv")
+
+sum(is.na(exp_tumors))
+```
+
+```{r}
+exp_tumors <- mutate(exp_tumors, IDH1 = as.numeric((IDH1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, TP53 = as.numeric((TP53 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, ATRX = as.numeric((ATRX == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, PTEN = as.numeric((PTEN == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, EGFR = as.numeric((EGFR == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, CIC = as.numeric((CIC == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, MUC16 = as.numeric((MUC16 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, PIK3CA = as.numeric((PIK3CA == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, NF1 = as.numeric((NF1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, PIK3R1 = as.numeric((PIK3R1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, FUBP1 = as.numeric((FUBP1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, RB1 = as.numeric((RB1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, NOTCH1 = as.numeric((NOTCH1 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, BCOR = as.numeric((BCOR == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, CSMD3 = as.numeric((CSMD3 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, SMARCA4 = as.numeric((SMARCA4 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, GRIN2A = as.numeric((GRIN2A == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, IDH2 = as.numeric((IDH2 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, FAT4 = as.numeric((FAT4 == "MUTATED")))
+exp_tumors <- mutate(exp_tumors, PDGFRA = as.numeric((PDGFRA == "MUTATED")))
+
+write_csv(exp_tumors, "glioma_numeric.csv")
+```
+
+```{r}
+pca_recipe <- recipe(~., data = exp_tumors) %>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_pca(all_numeric_predictors(), num_comp = 4)
+prepped_pca <- prep(pca_recipe)
+
+tidied_vars <- tidy(prepped_pca, 2, type = "variance")
+
+tidied_vars %>% 
+  filter(terms ==  "percent variance") %>% 
+ggplot(aes(x = component, y = value)) +
+  geom_point(size = 2) +
+  geom_line(size = 1) +
+  scale_x_continuous(breaks = 1:4) +
+  labs(title = "% Variance Explained",
+       y = "% Total Variance",
+       x = "PC") +
+  geom_text(aes(label = round(value, 2)), vjust = -0.3, size = 4) +
+  theme_minimal() +
+  theme(axis.title = element_text(face = "bold", size = 12),
+        axis.text = element_text(size = 10),
+        plot.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+tidied_vars %>% 
+  filter(terms ==  "cumulative percent variance") %>%
+ggplot(aes(component, value)) +
+  geom_col(fill= "forestgreen") +
+  labs(x = "Principal Components", 
+       y = "Cumulative Variance Explained (%)",
+       title = "Cumulative Variance Explained") +
+  geom_text(aes(label = round(value, 2)), vjust = -0.2, size = 4) +
+  theme_minimal() +
+  theme(axis.title = element_text(face = "bold", size = 12),
+        axis.text = element_text(size = 10),
+        plot.title = element_text(size = 14, face = "bold")) 
+```
+
