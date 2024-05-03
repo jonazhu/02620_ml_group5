@@ -90,6 +90,8 @@ def GetThreshold(varname, data):
 
     vals1 = np.array(list(cat1[varname]))
     vals2 = np.array(list(cat2[varname]))
+    if len(vals1) == 0 and len(vals2) == 0:
+        return -100000
     if len(vals1) == 0:
         return np.min(vals2)
     if len(vals2) == 0:
@@ -280,5 +282,32 @@ def GetConfusionMatrix(data, pred):
     
     return tp, fp, tn, fn
 
+def MakeTuningGrid(n = 50, min_min = 0, min_max = 15, frac_min = 0.0,
+                   frac_max = 1.0, depth_min = 10, depth_max = 50):
+    """
+    MakeTuningGrid() makes a 2-d list, which you can convert into a
+    numpy array, of random numbers to use for tuning a decision tree.
+    It requires no parameters but you can set the range for the following:
+    - n: integer, the number of rows to define. Default is 50.
+    - min: integer, the minimum needed to make a split in the tree
+    - frac: float between 0 and 1, the minimum fraction to define a leaf
+    - maxDepth: integer, the maximum depth for the tree
+    """
+    grid = []
+    for i in range(n):
+        #random int sampling in range: easy
+        current_min = np.random.randint(low = min_min, high = min_max)
+        current_depth = np.random.randint(low = depth_min, high = depth_max)
 
+        #random float sampling in range: harder
+        current_frac = 0.0
+        inRange = False
+        while inRange == False:
+            current_frac = np.random.rand()
+            if current_frac > frac_min and current_frac < frac_max:
+                inRange = True
 
+        params = [current_min, current_frac, current_depth]
+        grid.append(params)
+
+    return grid

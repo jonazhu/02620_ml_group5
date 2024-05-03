@@ -86,4 +86,46 @@ def ForestPredict(forest, test_data):
 
     return preds
 
+def MakeTuningGrid(n = 50, min_min = 0, min_max = 15, frac_min = 0.0,
+                   frac_max = 1.0, depth_min = 10, depth_max = 50, 
+                   subs_min = 0.0, subs_max = 1.0, trees_min = 10,
+                   trees_max = 200):
+    """
+    MakeTuningGrid() for random forests makes a 2-d list, which you can convert into a
+    numpy array, of random numbers to use for tuning a random forest.
+    It requires no parameters but you can set the range for the following:
+    - n: integer, the number of rows to define. Default is 50.
+    - min: integer, the minimum needed to make a split in the tree
+    - frac: float between 0 and 1, the minimum fraction to define a leaf
+    - maxDepth: integer, the maximum depth for the tree
+    - subset_frac: float between 0 and 1, the proportion of the features
+        used in making each tree
+    - tress: int, the number of trees to make.
+    """
+    grid = []
+    for i in range(n):
+        #random int sampling in range: easy
+        current_min = np.random.randint(low = min_min, high = min_max)
+        current_depth = np.random.randint(low = depth_min, high = depth_max)
+        current_trees = np.random.randint(low = trees_min, high = trees_max)
 
+        #random float sampling in range: harder
+        current_frac = 0.0
+        inRange = False
+        while inRange == False:
+            current_frac = np.random.rand()
+            if current_frac > frac_min and current_frac < frac_max:
+                inRange = True
+
+        #repeat for subset
+        current_subs = 0.0
+        inRange = False
+        while inRange == False:
+            current_subs = np.random.rand()
+            if current_subs > subs_min and current_subs < subs_max:
+                inRange = True
+
+        params = [current_min, current_frac, current_depth, current_subs, current_trees]
+        grid.append(params)
+
+    return grid
